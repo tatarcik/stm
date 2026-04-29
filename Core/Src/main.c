@@ -59,6 +59,9 @@
 /* Enable the LWIP Ethernet Stack */
 #define ENABLE_ETHERNET
 
+/* Enable board peripheral startup checks */
+/* #define ENABLE_STARTUP_SELF_TESTS */
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -135,6 +138,7 @@ int main(void)
   MX_SPI2_Init();
   /* USER CODE BEGIN 2 */
 
+#ifdef ENABLE_STARTUP_SELF_TESTS
   printf("\r\nInit Complete.\r\n");
   printf("Checking Storage Devices:\r\n");
   MX_EEPRMA2_Check_24C02();
@@ -143,6 +147,9 @@ int main(void)
 
   printf("Checking CAN Devices:\r\n");
   MX_CAN_Loopback_Check();
+#else
+  printf("\r\nInit Complete. Network service starting.\r\n");
+#endif
 
   /* USER CODE END 2 */
 

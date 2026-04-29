@@ -3,6 +3,7 @@ param(
     [ValidateSet("SWD", "JTAG")]
     [string]$Interface = "SWD",
     [int]$Speed = 4000,
+    [string]$JtagConf = "-1,-1",
     [string]$Firmware = "build\Industrial_Board.hex"
 )
 
@@ -20,6 +21,11 @@ if (-not (Test-Path $FirmwarePath)) {
 
 $JLink = Get-Command JLink.exe -ErrorAction Stop
 $CommandFile = New-TemporaryFile
+$JLinkArgs = @("-device", $Device, "-if", $Interface, "-speed", $Speed, "-autoconnect", "1")
+if ($Interface -eq "JTAG") {
+    $JLinkArgs += @("-jtagconf", $JtagConf)
+}
+$JLinkArgs += @("-CommanderScript", $CommandFile)
 
 try {
     @(
@@ -31,7 +37,7 @@ try {
         "qc"
     ) | Set-Content -Path $CommandFile -Encoding ASCII
 
-    & $JLink.Source -device $Device -if $Interface -speed $Speed -autoconnect 1 -CommanderScript $CommandFile
+    & $JLink.Source @JLinkArgs
     if ($LASTEXITCODE -ne 0) {
         throw "J-Link flashing failed with exit code $LASTEXITCODE."
     }
