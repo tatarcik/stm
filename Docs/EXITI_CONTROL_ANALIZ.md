@@ -32,6 +32,6 @@ Kaynak kod HEX'ten birebir geri elde edilemez. Bu nedenle davranis mevcut STM32F
 - SW1/SW2/SW3 butonlari EXTI15_10 uzerinden sayaclanacak sekilde eklendi.
 - `/control.cgi` ve `/deneme.cgi` kontrol alias'i olarak eklendi.
 - `/api/status` JSON durum endpoint'i eklendi.
-- DHCP gelmezse 15 saniye sonra kullanicinin mevcut agina uygun `192.168.91.222/24` fallback IP atanir. Gateway `192.168.91.174` olarak ayarlanir.
+- Ag erisim testi icin firmware dogrudan `192.168.1.222/24` statik IP ile baslatilir. Gateway `192.168.1.1` olarak ayarlanir. Bu mod, PHY link algilamasi sorunlu olsa bile MAC'i 100M full-duplex baslatir.
 
 Ham analiz ciktisi `analysis/` klasorunde yerel tutulur ve Git'e eklenmez.

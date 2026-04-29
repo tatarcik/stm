@@ -30,10 +30,11 @@
 #include "ethernetif.h"
 
 /* USER CODE BEGIN 0 */
+#define FORCE_STATIC_NETWORK 1U
 #define DHCP_FALLBACK_TIMEOUT_MS 15000U
 #define FALLBACK_IP_ADDR0 192U
 #define FALLBACK_IP_ADDR1 168U
-#define FALLBACK_IP_ADDR2 91U
+#define FALLBACK_IP_ADDR2 1U
 #define FALLBACK_IP_ADDR3 222U
 #define FALLBACK_NETMASK_ADDR0 255U
 #define FALLBACK_NETMASK_ADDR1 255U
@@ -41,8 +42,8 @@
 #define FALLBACK_NETMASK_ADDR3 0U
 #define FALLBACK_GW_ADDR0 192U
 #define FALLBACK_GW_ADDR1 168U
-#define FALLBACK_GW_ADDR2 91U
-#define FALLBACK_GW_ADDR3 174U
+#define FALLBACK_GW_ADDR2 1U
+#define FALLBACK_GW_ADDR3 1U
 
 /* USER CODE END 0 */
 /* Private function prototypes -----------------------------------------------*/
@@ -81,10 +82,16 @@ void MX_LWIP_Init(void)
   /* Initilialize the LwIP stack without RTOS */
   lwip_init();
 
+#if FORCE_STATIC_NETWORK
+  IP4_ADDR(&ipaddr, FALLBACK_IP_ADDR0, FALLBACK_IP_ADDR1, FALLBACK_IP_ADDR2, FALLBACK_IP_ADDR3);
+  IP4_ADDR(&netmask, FALLBACK_NETMASK_ADDR0, FALLBACK_NETMASK_ADDR1, FALLBACK_NETMASK_ADDR2, FALLBACK_NETMASK_ADDR3);
+  IP4_ADDR(&gw, FALLBACK_GW_ADDR0, FALLBACK_GW_ADDR1, FALLBACK_GW_ADDR2, FALLBACK_GW_ADDR3);
+#else
   /* IP addresses initialization with DHCP (IPv4) */
   ipaddr.addr = 0;
   netmask.addr = 0;
   gw.addr = 0;
+#endif
 
   /* add the network interface (IPv4/IPv6) without RTOS */
   netif_add(&gnetif, &ipaddr, &netmask, &gw, NULL, &ethernetif_init, &ethernet_input);
@@ -92,6 +99,11 @@ void MX_LWIP_Init(void)
   /* Registers the default network interface */
   netif_set_default(&gnetif);
 
+#if FORCE_STATIC_NETWORK
+  netif_set_up(&gnetif);
+  netif_set_link_up(&gnetif);
+  printf("Ethernet static IP: %s\r\n", ip4addr_ntoa(netif_ip4_addr(&gnetif)));
+#else
   if (netif_is_link_up(&gnetif))
   {
     /* When the netif is fully configured this function must be called */
@@ -102,6 +114,7 @@ void MX_LWIP_Init(void)
     /* When the netif link is down this function must be called */
     netif_set_down(&gnetif);
   }
+#endif
 
   /* Set the link callback function, this function is called on change of link status*/
   netif_set_link_callback(&gnetif, ethernet_link_status_updated);
@@ -112,7 +125,9 @@ void MX_LWIP_Init(void)
   /* Start DHCP negotiation for a network interface (IPv4) */
   ethernet_start_tick = HAL_GetTick();
   ethernet_fallback_configured = 0;
+#if !FORCE_STATIC_NETWORK
   dhcp_start(&gnetif);
+#endif
 
 /* USER CODE BEGIN 3 */
 
@@ -168,8 +183,10 @@ void MX_LWIP_Process(void)
   /* Handle timeouts */
   sys_check_timeouts();
 
+#if !FORCE_STATIC_NETWORK
   Ethernet_Link_Periodic_Handle(&gnetif);
   Ethernet_DHCP_Fallback_Handle(&gnetif);
+#endif
 
 /* USER CODE BEGIN 4_3 */
 /* USER CODE END 4_3 */

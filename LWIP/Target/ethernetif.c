@@ -97,6 +97,7 @@ ETH_DMADescTypeDef  DMARxDscrTab[ETH_RX_DESC_CNT]; /* Ethernet Rx DMA Descriptor
 ETH_DMADescTypeDef  DMATxDscrTab[ETH_TX_DESC_CNT]; /* Ethernet Tx DMA Descriptors */
 
 /* USER CODE BEGIN 2 */
+#define FORCE_ETHERNET_LINK_UP 1U
 
 /* USER CODE END 2 */
 
@@ -219,6 +220,16 @@ static void low_level_init(struct netif *netif)
 #endif /* LWIP_ARP || LWIP_ETHERNET */
 
 /* USER CODE BEGIN LOW_LEVEL_INIT */
+#if FORCE_ETHERNET_LINK_UP
+  ETH_MACConfigTypeDef MACConf = {0};
+  HAL_ETH_GetMACConfig(&heth, &MACConf);
+  MACConf.DuplexMode = ETH_FULLDUPLEX_MODE;
+  MACConf.Speed = ETH_SPEED_100M;
+  HAL_ETH_SetMACConfig(&heth, &MACConf);
+  HAL_ETH_Start(&heth);
+  netif_set_up(netif);
+  netif_set_link_up(netif);
+#endif
 
 /* USER CODE END LOW_LEVEL_INIT */
 }
