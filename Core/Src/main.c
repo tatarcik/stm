@@ -36,6 +36,7 @@
 
 #include "usbd_cdc_if.h"
 #include "eeprma2_m24.h"
+#include "web_control.h"
 
 #include <stdio.h>
 
@@ -56,7 +57,7 @@
 /* #define ENABLE_USBHOST */
 
 /* Enable the LWIP Ethernet Stack */
-/* #define ENABLE_ETHERNET */
+#define ENABLE_ETHERNET
 
 /* USER CODE END PD */
 
@@ -123,6 +124,7 @@ int main(void)
   MX_USART2_UART_Init();
 #ifdef ENABLE_ETHERNET
   MX_LWIP_Init();
+  WebControl_Init();
 #endif
   MX_USB_DEVICE_Init();
   MX_FATFS_Init();

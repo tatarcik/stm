@@ -46,6 +46,7 @@ Core/Src/usart.c \
 Core/Src/stm32f4xx_it.c \
 Core/Src/stm32f4xx_hal_msp.c \
 Core/Src/system_stm32f4xx.c \
+Core/Src/web_control.c \
 LWIP/App/lwip.c \
 LWIP/Target/ethernetif.c \
 USB_DEVICE/App/usb_device.c \
