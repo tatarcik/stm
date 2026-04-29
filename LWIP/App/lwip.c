@@ -22,6 +22,7 @@
 #include "lwip.h"
 #include "lwip/init.h"
 #include "lwip/netif.h"
+#include "lwip/ip4_addr.h"
 #if defined ( __CC_ARM )  /* MDK ARM Compiler */
 #include "lwip/sio.h"
 #endif /* MDK ARM Compiler */
@@ -32,6 +33,7 @@
 /* USER CODE END 0 */
 /* Private function prototypes -----------------------------------------------*/
 static void ethernet_link_status_updated(struct netif *netif);
+static void ethernet_status_updated(struct netif *netif);
 static void Ethernet_Link_Periodic_Handle(struct netif *netif);
 /* ETH Variables initialization ----------------------------------------------*/
 void Error_Handler(void);
@@ -86,6 +88,7 @@ void MX_LWIP_Init(void)
 
   /* Set the link callback function, this function is called on change of link status*/
   netif_set_link_callback(&gnetif, ethernet_link_status_updated);
+  netif_set_status_callback(&gnetif, ethernet_status_updated);
 
   /* Create the Ethernet link handler thread */
 
@@ -168,6 +171,14 @@ static void ethernet_link_status_updated(struct netif *netif)
   {
 /* USER CODE BEGIN 6 */
 /* USER CODE END 6 */
+  }
+}
+
+static void ethernet_status_updated(struct netif *netif)
+{
+  if (netif_is_up(netif) && !ip4_addr_isany_val(*netif_ip4_addr(netif)))
+  {
+    printf("Ethernet IP: %s\r\n", ip4addr_ntoa(netif_ip4_addr(netif)));
   }
 }
 
