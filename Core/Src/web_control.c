@@ -145,6 +145,8 @@ static int WebControl_BuildSettingsPage(void)
                   "<a href=\"/settings.shtml?led2=off\">OFF</a></p>"
                   "<p>LED3 <a href=\"/settings.shtml?led3=on\">ON</a> "
                   "<a href=\"/settings.shtml?led3=off\">OFF</a></p>"
+                  "<p><a href=\"/settings.shtml?reset=1\">Reset EXTI counters</a></p>"
+                  "<p><a href=\"/api/status\">JSON status</a></p>"
                   "<p><a href=\"/settings.shtml\">Refresh</a></p>"
                   "</body></html>",
                   WebControl_OnOff(led1), WebControl_OnOff(led2), WebControl_OnOff(led3),
@@ -154,6 +156,28 @@ static int WebControl_BuildSettingsPage(void)
                   (unsigned long)sw1_count,
                   (unsigned long)sw2_count,
                   (unsigned long)sw3_count);
+}
+
+static int WebControl_BuildStatusJson(void)
+{
+  bool led1 = WebControl_IsLedOn(LED1_GPIO_Port, LED1_Pin);
+  bool led2 = WebControl_IsLedOn(LED2_GPIO_Port, LED2_Pin);
+  bool led3 = WebControl_IsLedOn(LED3_GPIO_Port, LED3_Pin);
+  GPIO_PinState sw1 = HAL_GPIO_ReadPin(SW1_GPIO_Port, SW1_Pin);
+  GPIO_PinState sw2 = HAL_GPIO_ReadPin(SW2_GPIO_Port, SW2_Pin);
+  GPIO_PinState sw3 = HAL_GPIO_ReadPin(SW3_GPIO_Port, SW3_Pin);
+
+  return snprintf(page_buffer, sizeof(page_buffer),
+                  "{\"led1\":\"%s\",\"led2\":\"%s\",\"led3\":\"%s\","
+                  "\"sw1\":\"%s\",\"sw2\":\"%s\",\"sw3\":\"%s\","
+                  "\"sw1_exti\":%lu,\"sw2_exti\":%lu,\"sw3_exti\":%lu}",
+                  WebControl_OnOff(led1), WebControl_OnOff(led2), WebControl_OnOff(led3),
+                  sw1 == GPIO_PIN_SET ? "HIGH" : "LOW",
+                  sw2 == GPIO_PIN_SET ? "HIGH" : "LOW",
+                  sw3 == GPIO_PIN_SET ? "HIGH" : "LOW",
+                  (unsigned long)sw1_exti_count,
+                  (unsigned long)sw2_exti_count,
+                  (unsigned long)sw3_exti_count);
 }
 
 static int WebControl_BuildInfoPage(void)
@@ -195,6 +219,13 @@ static void WebControl_SendResponse(struct tcp_pcb *tpcb, const char *status, co
   }
 }
 
+static void WebControl_ResetExtiCounters(void)
+{
+  sw1_exti_count = 0;
+  sw2_exti_count = 0;
+  sw3_exti_count = 0;
+}
+
 static err_t WebControl_Recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
 {
   (void)arg;
@@ -221,6 +252,7 @@ static err_t WebControl_Recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, er
   pbuf_free(p);
 
   const char *status = "200 OK";
+  const char *content_type = "text/html; charset=utf-8";
   int content_length;
 
   if (strncmp(request_buffer, "GET / ", 6) == 0 || strncmp(request_buffer, "GET /index.html", 15) == 0)
@@ -238,10 +270,21 @@ static err_t WebControl_Recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, er
       content_length = WebControl_BuildLoginPage();
     }
   }
-  else if (strncmp(request_buffer, "GET /settings.shtml", 19) == 0)
+  else if (strncmp(request_buffer, "GET /settings.shtml", 19) == 0 ||
+           strncmp(request_buffer, "GET /control.cgi", 16) == 0 ||
+           strncmp(request_buffer, "GET /deneme.cgi", 15) == 0)
   {
+    if (WebControl_QueryHas(request_buffer, "reset", "1"))
+    {
+      WebControl_ResetExtiCounters();
+    }
     WebControl_ApplyRequest(request_buffer);
     content_length = WebControl_BuildSettingsPage();
+  }
+  else if (strncmp(request_buffer, "GET /api/status", 15) == 0)
+  {
+    content_type = "application/json";
+    content_length = WebControl_BuildStatusJson();
   }
   else if (strncmp(request_buffer, "GET /info.shtml", 15) == 0)
   {
@@ -260,7 +303,7 @@ static err_t WebControl_Recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, er
     page_buffer[0] = '\0';
   }
 
-  WebControl_SendResponse(tpcb, status, "text/html; charset=utf-8", content_length);
+  WebControl_SendResponse(tpcb, status, content_type, content_length);
   tcp_close(tpcb);
 
   return ERR_OK;

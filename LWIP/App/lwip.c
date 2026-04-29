@@ -23,18 +23,33 @@
 #include "lwip/init.h"
 #include "lwip/netif.h"
 #include "lwip/ip4_addr.h"
+#include "lwip/dhcp.h"
 #if defined ( __CC_ARM )  /* MDK ARM Compiler */
 #include "lwip/sio.h"
 #endif /* MDK ARM Compiler */
 #include "ethernetif.h"
 
 /* USER CODE BEGIN 0 */
+#define DHCP_FALLBACK_TIMEOUT_MS 15000U
+#define FALLBACK_IP_ADDR0 192U
+#define FALLBACK_IP_ADDR1 168U
+#define FALLBACK_IP_ADDR2 1U
+#define FALLBACK_IP_ADDR3 222U
+#define FALLBACK_NETMASK_ADDR0 255U
+#define FALLBACK_NETMASK_ADDR1 255U
+#define FALLBACK_NETMASK_ADDR2 255U
+#define FALLBACK_NETMASK_ADDR3 0U
+#define FALLBACK_GW_ADDR0 192U
+#define FALLBACK_GW_ADDR1 168U
+#define FALLBACK_GW_ADDR2 1U
+#define FALLBACK_GW_ADDR3 1U
 
 /* USER CODE END 0 */
 /* Private function prototypes -----------------------------------------------*/
 static void ethernet_link_status_updated(struct netif *netif);
 static void ethernet_status_updated(struct netif *netif);
 static void Ethernet_Link_Periodic_Handle(struct netif *netif);
+static void Ethernet_DHCP_Fallback_Handle(struct netif *netif);
 /* ETH Variables initialization ----------------------------------------------*/
 void Error_Handler(void);
 
@@ -53,6 +68,8 @@ ip4_addr_t netmask;
 ip4_addr_t gw;
 
 /* USER CODE BEGIN 2 */
+static uint32_t ethernet_start_tick;
+static uint8_t ethernet_fallback_configured;
 
 /* USER CODE END 2 */
 
@@ -93,6 +110,8 @@ void MX_LWIP_Init(void)
   /* Create the Ethernet link handler thread */
 
   /* Start DHCP negotiation for a network interface (IPv4) */
+  ethernet_start_tick = HAL_GetTick();
+  ethernet_fallback_configured = 0;
   dhcp_start(&gnetif);
 
 /* USER CODE BEGIN 3 */
@@ -150,9 +169,31 @@ void MX_LWIP_Process(void)
   sys_check_timeouts();
 
   Ethernet_Link_Periodic_Handle(&gnetif);
+  Ethernet_DHCP_Fallback_Handle(&gnetif);
 
 /* USER CODE BEGIN 4_3 */
 /* USER CODE END 4_3 */
+}
+
+static void Ethernet_DHCP_Fallback_Handle(struct netif *netif)
+{
+  if (ethernet_fallback_configured || !netif_is_link_up(netif) || !ip4_addr_isany_val(*netif_ip4_addr(netif)))
+  {
+    return;
+  }
+
+  if (HAL_GetTick() - ethernet_start_tick < DHCP_FALLBACK_TIMEOUT_MS)
+  {
+    return;
+  }
+
+  dhcp_stop(netif);
+  IP4_ADDR(&ipaddr, FALLBACK_IP_ADDR0, FALLBACK_IP_ADDR1, FALLBACK_IP_ADDR2, FALLBACK_IP_ADDR3);
+  IP4_ADDR(&netmask, FALLBACK_NETMASK_ADDR0, FALLBACK_NETMASK_ADDR1, FALLBACK_NETMASK_ADDR2, FALLBACK_NETMASK_ADDR3);
+  IP4_ADDR(&gw, FALLBACK_GW_ADDR0, FALLBACK_GW_ADDR1, FALLBACK_GW_ADDR2, FALLBACK_GW_ADDR3);
+  netif_set_addr(netif, &ipaddr, &netmask, &gw);
+  ethernet_fallback_configured = 1;
+  printf("Ethernet DHCP timeout, fallback IP: %s\r\n", ip4addr_ntoa(netif_ip4_addr(netif)));
 }
 
 /**

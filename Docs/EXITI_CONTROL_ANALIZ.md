@@ -30,5 +30,8 @@ Kaynak kod HEX'ten birebir geri elde edilemez. Bu nedenle davranis mevcut STM32F
 - `/settings.shtml` LED1/LED2/LED3 kontrol sayfasi eklendi.
 - `/info.shtml` bilgi sayfasi eklendi.
 - SW1/SW2/SW3 butonlari EXTI15_10 uzerinden sayaclanacak sekilde eklendi.
+- `/control.cgi` ve `/deneme.cgi` kontrol alias'i olarak eklendi.
+- `/api/status` JSON durum endpoint'i eklendi.
+- DHCP gelmezse 15 saniye sonra `192.168.1.222/24` fallback IP atanir.
 
 Ham analiz ciktisi `analysis/` klasorunde yerel tutulur ve Git'e eklenmez.
