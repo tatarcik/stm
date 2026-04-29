@@ -66,9 +66,14 @@ void MX_GPIO_Init(void)
                            PEPin PEPin PEPin PEPin
                            PEPin PEPin */
   GPIO_InitStruct.Pin = DS18B20_Pin|P4_GPIO_Pin|P4_GPIOE5_Pin|P4_GPIOE6_Pin
-                          |NRF_IRQ_Pin|SW1_Pin|SW2_Pin|SW3_Pin
-                          |P4_GPIOE0_Pin|P4_GPIOE1_Pin;
+                          |NRF_IRQ_Pin|P4_GPIOE0_Pin|P4_GPIOE1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PEPin PEPin PEPin */
+  GPIO_InitStruct.Pin = SW1_Pin|SW2_Pin|SW3_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
@@ -117,6 +122,10 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(RS485_TX_RX__GPIO_Port, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
 }
 

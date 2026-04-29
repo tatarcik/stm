@@ -16,6 +16,25 @@ static struct tcp_pcb *web_control_pcb;
 static char request_buffer[REQUEST_BUFFER_SIZE];
 static char page_buffer[PAGE_BUFFER_SIZE];
 static char response_buffer[RESPONSE_BUFFER_SIZE];
+static volatile uint32_t sw1_exti_count;
+static volatile uint32_t sw2_exti_count;
+static volatile uint32_t sw3_exti_count;
+
+void WebControl_RecordExti(uint16_t pin)
+{
+  if (pin == SW1_Pin)
+  {
+    sw1_exti_count++;
+  }
+  else if (pin == SW2_Pin)
+  {
+    sw2_exti_count++;
+  }
+  else if (pin == SW3_Pin)
+  {
+    sw3_exti_count++;
+  }
+}
 
 static void WebControl_SetLed(uint8_t led, bool enabled)
 {
@@ -107,6 +126,9 @@ static int WebControl_BuildSettingsPage(void)
   GPIO_PinState sw1 = HAL_GPIO_ReadPin(SW1_GPIO_Port, SW1_Pin);
   GPIO_PinState sw2 = HAL_GPIO_ReadPin(SW2_GPIO_Port, SW2_Pin);
   GPIO_PinState sw3 = HAL_GPIO_ReadPin(SW3_GPIO_Port, SW3_Pin);
+  uint32_t sw1_count = sw1_exti_count;
+  uint32_t sw2_count = sw2_exti_count;
+  uint32_t sw3_count = sw3_exti_count;
 
   return snprintf(page_buffer, sizeof(page_buffer),
                   "<!doctype html><html><head><meta charset=\"utf-8\">"
@@ -115,6 +137,7 @@ static int WebControl_BuildSettingsPage(void)
                   "<h1>JZ-F407VET6 Settings</h1>"
                   "<p>LED1: %s | LED2: %s | LED3: %s</p>"
                   "<p>SW1: %s | SW2: %s | SW3: %s</p>"
+                  "<p>EXTI counts - SW1: %lu | SW2: %lu | SW3: %lu</p>"
                   "<h2>LED Control</h2>"
                   "<p>LED1 <a href=\"/settings.shtml?led1=on\">ON</a> "
                   "<a href=\"/settings.shtml?led1=off\">OFF</a></p>"
@@ -127,7 +150,10 @@ static int WebControl_BuildSettingsPage(void)
                   WebControl_OnOff(led1), WebControl_OnOff(led2), WebControl_OnOff(led3),
                   sw1 == GPIO_PIN_SET ? "HIGH" : "LOW",
                   sw2 == GPIO_PIN_SET ? "HIGH" : "LOW",
-                  sw3 == GPIO_PIN_SET ? "HIGH" : "LOW");
+                  sw3 == GPIO_PIN_SET ? "HIGH" : "LOW",
+                  (unsigned long)sw1_count,
+                  (unsigned long)sw2_count,
+                  (unsigned long)sw3_count);
 }
 
 static int WebControl_BuildInfoPage(void)
