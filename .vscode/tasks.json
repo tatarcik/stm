@@ -35,6 +35,18 @@
         "reveal": "always",
         "panel": "shared"
       }
+    },
+    {
+      "label": "STM32: flash J-Link",
+      "type": "shell",
+      "command": "powershell",
+      "args": ["-ExecutionPolicy", "Bypass", "-File", "scripts/flash-jlink.ps1"],
+      "dependsOn": "STM32: build",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
     }
   ]
 }

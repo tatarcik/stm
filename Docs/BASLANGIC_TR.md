@@ -21,11 +21,12 @@ Bu makinede proje icin su altyapi kuruldu:
 - GNU Make: `C:\msys64\usr\bin\make.exe`
 - dfu-util: `C:\msys64\mingw64\bin\dfu-util.exe`
 - Resmi Arm GNU Toolchain: `C:\Program Files (x86)\Arm GNU Toolchain arm-none-eabi\14.2 rel1\bin`
+- SEGGER J-Link: `C:\Program Files\SEGGER\JLink_V932\JLink.exe`
 
 VS Code gorevleri bu yollari PATH'e kendisi ekler. Normal PowerShell terminalinde elle derlemek istersen once bu PATH'i ekleyebilirsin:
 
 ```powershell
-$env:Path = "C:\Program Files (x86)\Arm GNU Toolchain arm-none-eabi\14.2 rel1\bin;C:\msys64\usr\bin;C:\msys64\mingw64\bin;$env:Path"
+$env:Path = "C:\Program Files (x86)\Arm GNU Toolchain arm-none-eabi\14.2 rel1\bin;C:\msys64\usr\bin;C:\msys64\mingw64\bin;C:\Program Files\SEGGER\JLink_V932;$env:Path"
 ```
 
 Kontrol:
@@ -34,6 +35,7 @@ Kontrol:
 arm-none-eabi-gcc --version
 make --version
 dfu-util --version
+JLink.exe -? 
 ```
 
 ## Derleme
@@ -70,6 +72,29 @@ VS Code icinden `Terminal > Run Task... > STM32: build` gorevini de kullanabilir
 2. Reset veya power cycle yap.
 
 VS Code icinden `Terminal > Run Task... > STM32: flash DFU` gorevini de kullanabilirsin.
+
+## J-Link Ile Yukleme
+
+J-Link kullaniyorsan J-Flash projesinde cihaz bos kaldiginda `Unknown device specified ()` hatasi gorulur. Bu projede J-Flash yerine dogrudan J-Link Commander ile yuklemek icin hazir script var:
+
+```powershell
+.\scripts\flash-jlink.ps1
+```
+
+Varsayilan ayarlar:
+
+- Device: `STM32F407VE`
+- Interface: `SWD`
+- Speed: `4000`
+- Firmware: `build\Industrial_Board.hex`
+
+JTAG kablolamasi kullaniyorsan:
+
+```powershell
+.\scripts\flash-jlink.ps1 -Interface JTAG
+```
+
+VS Code icinden `Terminal > Run Task... > STM32: flash J-Link` gorevini de kullanabilirsin.
 
 ## Onemli Donanim Notu
 
