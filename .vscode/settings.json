@@ -1,0 +1,10 @@
+{
+  "C_Cpp.default.compilerPath": "C:/Program Files (x86)/Arm GNU Toolchain arm-none-eabi/14.2 rel1/bin/arm-none-eabi-gcc.exe",
+  "C_Cpp.default.configurationProvider": "ms-vscode.makefile-tools",
+  "makefile.makePath": "C:/msys64/usr/bin/make.exe",
+  "makefile.configureOnOpen": true,
+  "files.associations": {
+    "stm32f4xx_hal.h": "c",
+    "main.h": "c"
+  }
+}

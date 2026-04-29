@@ -4,7 +4,8 @@
     {
       "label": "STM32: build",
       "type": "shell",
-      "command": "make",
+      "command": "powershell",
+      "args": ["-ExecutionPolicy", "Bypass", "-File", "scripts/build.ps1"],
       "group": "build",
       "problemMatcher": ["$gcc"],
       "presentation": {
@@ -15,8 +16,8 @@
     {
       "label": "STM32: clean",
       "type": "shell",
-      "command": "make",
-      "args": ["clean"],
+      "command": "powershell",
+      "args": ["-ExecutionPolicy", "Bypass", "-File", "scripts/build.ps1", "-Clean"],
       "problemMatcher": [],
       "presentation": {
         "reveal": "always",
@@ -26,8 +27,8 @@
     {
       "label": "STM32: flash DFU",
       "type": "shell",
-      "command": "make",
-      "args": ["flash"],
+      "command": "powershell",
+      "args": ["-ExecutionPolicy", "Bypass", "-File", "scripts/flash-dfu.ps1"],
       "dependsOn": "STM32: build",
       "problemMatcher": [],
       "presentation": {

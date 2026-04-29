@@ -13,12 +13,20 @@ Bu workspace, `art103/JZ-F407VET6` reposundaki CubeMX tabanli STM32F407VET6 kart
 
 Ilk deneme icin en rahat yol LED ve seri porttur. Kod `printf` cikisini varsayilan olarak USART1 DB9 seri porta yollar. USB CDC kullanmak istersen `Core/Src/main.c` icindeki `USB_DEBUG` tanimini acabilirsin.
 
-## Windows Icin Gerekenler
+## Windows Icin Kurulan Altyapi
 
-Bu makinede su an `arm-none-eabi-gcc`, `make`, `dfu-util`, `pio` ve `STM32_Programmer_CLI` bulunamadi. Derlemek/yuklemek icin asagidaki iki yoldan biri yeterli:
+Bu makinede proje icin su altyapi kuruldu:
 
-1. MSYS2/Chocolatey/Scoop ile `arm-none-eabi-gcc`, `make` ve `dfu-util` kur.
-2. ST'nin STM32CubeCLT paketini kur; sonra `make` ve `arm-none-eabi-gcc` PATH icinde gorunmeli.
+- MSYS2: `C:\msys64`
+- GNU Make: `C:\msys64\usr\bin\make.exe`
+- dfu-util: `C:\msys64\mingw64\bin\dfu-util.exe`
+- Resmi Arm GNU Toolchain: `C:\Program Files (x86)\Arm GNU Toolchain arm-none-eabi\14.2 rel1\bin`
+
+VS Code gorevleri bu yollari PATH'e kendisi ekler. Normal PowerShell terminalinde elle derlemek istersen once bu PATH'i ekleyebilirsin:
+
+```powershell
+$env:Path = "C:\Program Files (x86)\Arm GNU Toolchain arm-none-eabi\14.2 rel1\bin;C:\msys64\usr\bin;C:\msys64\mingw64\bin;$env:Path"
+```
 
 Kontrol:
 
@@ -31,7 +39,13 @@ dfu-util --version
 ## Derleme
 
 ```powershell
-make
+.\scripts\build.ps1
+```
+
+Temiz derleme:
+
+```powershell
+.\scripts\build.ps1 -Clean
 ```
 
 Derleme basarili olursa firmware dosyalari `build/` klasorunde olusur:
@@ -49,7 +63,7 @@ VS Code icinden `Terminal > Run Task... > STM32: build` gorevini de kullanabilir
 3. Asagidaki komutu calistir:
 
 ```powershell
-make flash
+.\scripts\flash-dfu.ps1
 ```
 
 1. BOOT0 jumper'ini tekrar `0` konumuna al.
